@@ -37,7 +37,7 @@ Shader "Unlit/20240704_Wa"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
-            int N() { return 120; }
+            int N() { return 180; }
 
             uint intize(float x)
             {
@@ -53,11 +53,6 @@ Shader "Unlit/20240704_Wa"
             }
 
 
-
-
-
-
-            
             const float PI = 3.14159265359;
 
             float2 rotate2d(float2 v, float a)
@@ -105,11 +100,13 @@ Shader "Unlit/20240704_Wa"
                 float fi = float(i) * pace;
                 float3 size = float3(0.3, 0.3, 0.3);
                 float3 ans3d = 0.5 + size * float3(sin(fi * 1.098 + 0.3 * sin(fi)), sin(fi * 0.897 + 0.3 * sin(fi * 1.32)),
-                                                              sin(fi * 0.797 + 0.3 * sin(fi * 1.212)));
-                
+                                  sin(fi * 0.797 + 0.3 * sin(fi * 1.212)));
+
                 ans3d.x = SignedPow((ans3d.x - 0.5) / size.x, 1.3) * size.x + 0.5;
                 ans3d.y = SignedPow((ans3d.y - 0.5) / size.y, 1.3) * size.y + 0.5;
                 ans3d.z = SignedPow((ans3d.z - 0.5) / size.z, 1.3) * size.z + 0.5;
+
+                ans3d.xyz += 0.15 * float3(sin(fi * 0.32) * sin(fi * 0.24), sin(fi * 0.278) * sin(fi * 0.291), sin(fi * 0.292) * sin(fi * 0.214));
                 ans3d.xz = rotate2d(ans3d.xz - 0.5, _Time.y * 0.3) + 0.5;
 
                 return ans3d.xy;
@@ -117,8 +114,9 @@ Shader "Unlit/20240704_Wa"
 
             float barcord(float2 uv)
             {
-                float val = sin(uv.y * 13.6 + uv.x * 10.32) + sin(uv.y * 14.64 + uv.x * 0.402) + sin(uv.y * 6.26 + uv.x * 0.411) + (0.5 -
-                    abs(uv.y * 1)) * 2;
+                float val = sin(uv.y * 6.6 + uv.x * 10.32 + _Time.y * 2.1) + sin(uv.y * 8.64 + uv.x * 0.402 + _Time.y * 1.13) + sin(
+                        uv.y * 7.26 + uv.x * 0.411 - _Time.y * 0.9)
+                    + (0.5 - abs(uv.y * 1)) * 2;
                 val = pow(saturate(val * 0.5 + 1.0), 0.6);
                 val *= saturate((1.0 - abs(uv.y)) * (1.4 + 1.2 * sin(uv.x * 4)));
                 return val;
@@ -138,7 +136,7 @@ Shader "Unlit/20240704_Wa"
                 float angleLR = angleBetween(left - center, right - center);
                 float angleLP = angleBetween(left - center, p - center);
                 float angleRP = angleBetween(right - center, p - center);
-                if(abs( angleLR - angleLP - angleRP) > 0.01) return float2(-1,-1);
+                if (abs(angleLR - angleLP - angleRP) > 0.01) return float2(-1, -1);
                 float u = angleLP / angleLR;
                 float r = length(p - center);
                 float v = (r - radius) / breadth;
@@ -171,10 +169,10 @@ Shader "Unlit/20240704_Wa"
                 if (lenLeft > lenRight)
                 {
                     float2 pM = pointTop + normalize(left - pointTop) * lenRight;
-                    float2 pN = (pM + right)*0.5;
+                    float2 pN = (pM + right) * 0.5;
                     float2 pointDown = pointTop + (pN - pointTop) * pow(cos(angleTop / 2), -2);
                     float angleDown = PI - angleTop;
-                    float radius = length(pointTop - pointDown) * sin(angleTop/2);
+                    float radius = length(pointTop - pointDown) * sin(angleTop / 2);
                     float arcMR = radius * angleDown;
 
                     float lenSeg = length(pM - left);
@@ -184,26 +182,26 @@ Shader "Unlit/20240704_Wa"
 
                     float breadth = 0.03;
                     float2 uvSeg = segmentUV(left, pM, breadth, p);
-                    float2 uvArc = radius<10 ? arcUV(pM, right, pointDown, radius, breadth, p) :
-                        segmentUV(pM,right,breadth,p);
+                    float2 uvArc = radius < 10 ? arcUV(pM, right, pointDown, radius, breadth, p) : segmentUV(pM, right, breadth, p);
 
-                    
+
                     //float2 uvArc = segmentUV(pM, right, 0.003, p);
-                    
-                    float2 uv = float2(-1,-2);
 
-                    if(UVIsInQuad(uvSeg)) uv = uvSeg * float2(ratioSeg,1);
-                    //if(UVIsInQuad(uvSeg)) return float3(1,1,1);
-                    else if (UVIsInQuad(uvArc)) uv = float2(ratioSeg,0) + uvArc * float2(ratioArc,1);
+                    float2 uv = float2(-1, -2);
+
+                    if (UVIsInQuad(uvSeg)) uv = uvSeg * float2(ratioSeg, 1);
+                        //if(UVIsInQuad(uvSeg)) return float3(1,1,1);
+                    else if (UVIsInQuad(uvArc)) uv = float2(ratioSeg, 0) + uvArc * float2(ratioArc, 1);
                     //else if (UVIsInQuad(uvArc)) return float3(1,1,1);
                     //if(UVIsInQuad(segmentUV(left,right ,0.003,p))) return float3(1,0,1);
-                    
-                    uv.y = abs(uv.y);
-                    float2 barcordUv = float2(2,uv.y);//(uv + float2(i, 0)) * float2(pace, 1);
 
-                    if(abs(uv.y) < 1.0)
+                    uv.y = abs(uv.y);
+                    float2 barcordUv = float2(2, uv.y); //(uv + float2(i, 0)) * float2(pace, 1);
+
+                    if (abs(uv.y) < 1.0)
                     {
-                        return float3(1, 1, 1) * barcord(barcordUv)* modifiedSmoothstep(float(float(fromBack)/N()),0.1);// * modifiedSmoothstep(saturate((uv.x + fromBack) / float(N())), 0.1);   
+                        return float3(1, 1, 1) * barcord(barcordUv) * modifiedSmoothstep(float(float(fromBack) / N()), 0.1);
+                        // * modifiedSmoothstep(saturate((uv.x + fromBack) / float(N())), 0.1);   
                     }
                     else
                     {
@@ -212,12 +210,11 @@ Shader "Unlit/20240704_Wa"
                 }
                 else
                 {
-
                     float2 pM = pointTop + normalize(right - pointTop) * lenLeft;
-                    float2 pN = (pM + left)*0.5;
+                    float2 pN = (pM + left) * 0.5;
                     float2 pointDown = pointTop + (pN - pointTop) * pow(cos(angleTop / 2), -2);
                     float angleDown = PI - angleTop;
-                    float radius = length(pointTop - pointDown) * sin(angleTop/2);
+                    float radius = length(pointTop - pointDown) * sin(angleTop / 2);
                     float arcMR = radius * angleDown;
 
                     float lenSeg = length(pM - right);
@@ -226,29 +223,29 @@ Shader "Unlit/20240704_Wa"
                     float ratioSeg = lenSeg / lenTotal;
 
                     float breadth = 0.03;
-                    float2 uvArc = radius<10 ? arcUV(left, pM, pointDown, radius, breadth, p):
-                        segmentUV(left,pM,breadth,p);
+                    float2 uvArc = radius < 10 ? arcUV(left, pM, pointDown, radius, breadth, p) : segmentUV(left, pM, breadth, p);
                     float2 uvSeg = segmentUV(pM, right, breadth, p);
 
-                    float2 uv = float2(-1,-2);
-                    
-                    if(UVIsInQuad(uvSeg)) uv = float2(ratioArc,0) + uvSeg * float2(ratioSeg,1);
-                    else if (UVIsInQuad(uvArc)) uv = uvArc * float2(ratioArc,1);
+                    float2 uv = float2(-1, -2);
+
+                    if (UVIsInQuad(uvSeg)) uv = float2(ratioArc, 0) + uvSeg * float2(ratioSeg, 1);
+                    else if (UVIsInQuad(uvArc)) uv = uvArc * float2(ratioArc, 1);
 
                     uv.y = abs(uv.y);
-                    float2 barcordUv = float2(2,uv.y);(uv + float2(i, 0)) * float2(pace, 1);
+                    float2 barcordUv = float2(2, uv.y);
+                    (uv + float2(i, 0)) * float2(pace, 1);
 
 
-                    if(abs(uv.y) < 1.0)
+                    if (abs(uv.y) < 1.0)
                     {
-                        return float3(1, 1, 1) * barcord(barcordUv)* modifiedSmoothstep(float(float(fromBack)/N()),0.1);// * modifiedSmoothstep(saturate((uv.x + fromBack) / float(N())), 0.1);   
+                        return float3(1, 1, 1) * barcord(barcordUv) * modifiedSmoothstep(float(float(fromBack) / N()), 0.1);
+                        // * modifiedSmoothstep(saturate((uv.x + fromBack) / float(N())), 0.1);   
                     }
                     else
                     {
                         return float3(0, 0, 0);
-                    } 
+                    }
                 }
-
             }
 
             fixed4 frag(v2f I) : SV_Target
@@ -261,7 +258,7 @@ Shader "Unlit/20240704_Wa"
                 float idf = floor(t);
 
                 uint idi = intize(idf);
-                float pace = 0.22;
+                float pace = 0.45;
                 int n = N();
 
                 for (int i = n - 1; i >= 0; i--)
