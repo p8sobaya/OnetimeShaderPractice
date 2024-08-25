@@ -119,7 +119,7 @@ Shader "Unlit/20240704_Wa"
                     + (0.5 - abs(uv.y * 1)) * 2;
                 val = pow(saturate(val * 0.5 + 1.0), 0.6);
                 val *= saturate((1.0 - abs(uv.y)) * (1.4 + 1.2 * sin(uv.x * 4)));
-                return val;
+                return fmod(uv.y*5,1);//val;
             }
 
             float2 segmentUV(float2 left, float2 right, float breadth, float2 p)
